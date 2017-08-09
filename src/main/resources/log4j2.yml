@@ -1,0 +1,41 @@
+configuration:
+  status: warn #log level for internal log4j events
+  name: reviews-analyzer-logs-config
+  properties:
+    property:
+      - name: logs-path
+        value: "logs"
+      - name: filename-prefix
+        value: "reviews-analyzer"
+      - name: log-pattern
+        value: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %m%n"
+
+  appenders:
+    console:
+      name: STDOUT
+      patternLayout:
+        pattern: ${log-pattern}
+    rollingFile:
+      name: FILE
+      fileName: "${logs-path}/${filename-prefix}.log"
+      filePattern: "${logs-path}/${filename-prefix}-%d{yyyy-MM-dd}-%i.log.gz"
+      bufferedIO: true
+      patternLayout:
+        pattern: "${log-pattern}"
+      policies:
+        sizeBasedTriggeringPolicy:
+          Size: 10 MB
+        onStartupTriggeringPolicy: {}
+  loggers:
+    logger:
+        name: com
+        level: debug
+        additivity: false
+        appenderRef:
+          ref: STDOUT
+          ref: FILE
+    root:
+      level: info
+      appenderRef:
+        - ref: STDOUT
+        - ref: FILE
