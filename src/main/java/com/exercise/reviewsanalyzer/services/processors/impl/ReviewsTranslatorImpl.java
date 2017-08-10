@@ -3,10 +3,10 @@ package com.exercise.reviewsanalyzer.services.processors.impl;
 import com.exercise.reviewsanalyzer.domain.Review;
 import com.exercise.reviewsanalyzer.dto.TranslateRequestDto;
 import com.exercise.reviewsanalyzer.dto.TranslateResponseDto;
-import com.exercise.reviewsanalyzer.services.processors.ReviewsProcessor;
+import com.exercise.reviewsanalyzer.services.processors.ReviewsTranslator;
 import lombok.extern.log4j.Log4j2;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -15,70 +15,75 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 /**
  * Created by itsik on 8/6/17.
+ * <p>
+ * Mock implementation for translating reviews using Google API
+ * <p>
+ * //TODO inject mock based on profile
  */
-//@Component
+@Component
 @Log4j2
-public class ReviewsTranslatorImpl implements ReviewsProcessor<Object> {
-    //TODO generify with other analyzers
-    //TODO inject configurations (configurations should be central)
-    //TODO support multiple languages
-    private static final int DEFAULT_TIMEOUT_MS = 1000;
-    private static final String INPUT_LANGUAGE = "en";
-    private static final String OUTPUT_LANGUAGE = "fr";
-    private static final String TRANSLATOR_URL = "https://api.google.com/translate";
-    private static final int REVIEW_MAX_LEN = 1000;
+public class ReviewsTranslatorImpl implements ReviewsTranslator {
 
-    @Mock
-    private RestTemplate restTemplate = new RestTemplate(createFactory());
+    private final TranslatorConfiguration configuration;
+
+    private RestTemplate restTemplate;
 
     private static final Charset CHARSET = Charset.forName("UTF-8");
 
-    public ReviewsTranslatorImpl() {
+    static final String DUMMY_TRANSLATED_TEXT = "Salut Jéan, comment vas tu?";
+
+    @Autowired
+    public ReviewsTranslatorImpl(TranslatorConfiguration configuration) {
+        this.configuration = configuration;
         initMock();
     }
 
     private void initMock() {
-        MockitoAnnotations.initMocks(this);
+        restTemplate = Mockito.mock(RestTemplate.class);
         TranslateResponseDto translateResponse = TranslateResponseDto.builder()
-                .text("Salut Jéan, comment vas tu?")
+                .text(DUMMY_TRANSLATED_TEXT)
                 .build();
         ResponseEntity<TranslateResponseDto> responseEntity = new ResponseEntity<>(translateResponse, HttpStatus.OK);
-        when(restTemplate.postForEntity(eq(TRANSLATOR_URL), anyObject(), eq(TranslateResponseDto.class))).thenReturn(responseEntity);
+        when(restTemplate.postForEntity(anyString(), anyObject(), eq(TranslateResponseDto.class))).thenReturn(responseEntity);
     }
 
     private HttpComponentsClientHttpRequestFactory createFactory() {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(DEFAULT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(DEFAULT_TIMEOUT_MS);
+        requestFactory.setConnectTimeout(configuration.getApiTimeoutMs());
+        requestFactory.setReadTimeout(configuration.getApiTimeoutMs());
         return requestFactory;
     }
 
-    public void translate(Review review) {
+    public String translate(Review review) {
 
         HttpHeaders headers = createHeaders();
         TranslateRequestDto translateRequest = createTranslateRequest(review);
         HttpEntity<TranslateRequestDto> translateRequestEntity = new HttpEntity<>(translateRequest, headers);
-        ResponseEntity<TranslateResponseDto> translateResponseEntity = restTemplate.postForEntity(TRANSLATOR_URL, translateRequestEntity, TranslateResponseDto.class);
-        if (!translateResponseEntity.getStatusCode().is2xxSuccessful()) {
-            log.error("Could not translate review: {}",review);
+        ResponseEntity<TranslateResponseDto> translateResponseEntity = restTemplate.postForEntity(configuration.getApiUrl(), translateRequestEntity, TranslateResponseDto.class);
+        if (translateResponseEntity.getStatusCode().is2xxSuccessful()) {
+            log.trace("Translated review - ID: {}", review.getId());
+            return translateResponseEntity.getBody().getText();
+        } else {
+            log.error("Could not translate review: {}", review);
+            return null;
         }
     }
 
     private TranslateRequestDto createTranslateRequest(Review review) {
 
-        String trimmedReviewText = review.getText().substring(0, Math.min(REVIEW_MAX_LEN,review.getText().length()));
+        String trimmedReviewText = review.getText().substring(0, Math.min(configuration.getApiMaxLength(), review.getText().length()));
         return TranslateRequestDto.builder()
-                .inputLanguage(INPUT_LANGUAGE)
-                .outputLanguage(OUTPUT_LANGUAGE)
+                .inputLanguage(configuration.getInputLanguage())
+                .outputLanguage(configuration.getOutputLanguage())
                 .text(trimmedReviewText)
                 .build();
     }
@@ -90,11 +95,9 @@ public class ReviewsTranslatorImpl implements ReviewsProcessor<Object> {
         return headers;
     }
 
-
     @Override
-    public Object process(Collection<Review> reviews) {
+    public void translate(Collection<Review> reviews) {
         Stream<Review> reviewStream = reviews.parallelStream();
-        new ForkJoinPool().submit(() -> reviewStream.forEach(this::translate));
-        return 0;
+        new ForkJoinPool(configuration.getParallelism()).submit(() -> reviewStream.forEach(this::translate));
     }
 }

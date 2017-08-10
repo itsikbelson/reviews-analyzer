@@ -6,4 +6,6 @@
 **/**/*.project
 **/**/*.settings
 /build
+/logs
 /.gradle/**/*
+.DS_Store

@@ -1,0 +1,13 @@
+analyzer:
+  top:
+    count: 1000
+translator:
+  api:
+    url: https://api.google.com/translate
+    timeout.ms: 1000
+    length.max: 1000
+  language:
+    input: en
+    output: fr
+  executor:
+    parallelism: 100

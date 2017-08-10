@@ -6,7 +6,9 @@ import java.util.Collection;
 
 /**
  * Created by itsik on 8/8/17.
+ * <p>
+ * Interface for execution of analyzers and translators on revies
  */
 public interface ReviewsProcessExecutor {
-    void execute(Collection<Review> reviews);
+    void execute(Collection<Review> reviews, boolean translate);
 }

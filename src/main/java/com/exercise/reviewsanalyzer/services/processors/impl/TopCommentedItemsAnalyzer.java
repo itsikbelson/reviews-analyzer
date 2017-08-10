@@ -2,7 +2,6 @@ package com.exercise.reviewsanalyzer.services.processors.impl;
 
 import com.exercise.reviewsanalyzer.domain.Review;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.stream.Stream;

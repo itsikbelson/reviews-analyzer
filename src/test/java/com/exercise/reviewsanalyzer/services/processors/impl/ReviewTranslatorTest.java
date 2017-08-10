@@ -1,14 +1,19 @@
 package com.exercise.reviewsanalyzer.services.processors.impl;
 
 import com.exercise.reviewsanalyzer.domain.Review;
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 /**
  * Created by itsik on 8/7/17.
+ *
+ * Translator test
  */
 public class ReviewTranslatorTest {
 
-    private ReviewsTranslatorImpl translator = new ReviewsTranslatorImpl();
+    private ReviewsTranslatorImpl translator = new ReviewsTranslatorImpl(new TranslatorConfiguration());
 
     @Test
     public void testTranslation() throws Exception {
@@ -18,7 +23,8 @@ public class ReviewTranslatorTest {
                 .profileName("USER123")
                 .text("Hello John, how are you?")
                 .build();
-        translator.translate(review);
+        String translate = translator.translate(review);
+        Assert.assertEquals(ReviewsTranslatorImpl.DUMMY_TRANSLATED_TEXT,translate);
     }
 
 }

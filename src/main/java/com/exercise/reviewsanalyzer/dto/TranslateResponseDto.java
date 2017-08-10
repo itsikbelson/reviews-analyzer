@@ -8,6 +8,8 @@ import lombok.ToString;
 
 /**
  * Created by itsik on 8/7/17.
+ * <p>
+ * Translate response
  */
 @Getter
 @Setter

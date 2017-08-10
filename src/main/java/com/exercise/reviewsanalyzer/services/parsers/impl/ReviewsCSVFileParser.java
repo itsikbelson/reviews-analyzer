@@ -3,6 +3,7 @@ package com.exercise.reviewsanalyzer.services.parsers.impl;
 import com.exercise.reviewsanalyzer.domain.Review;
 import com.exercise.reviewsanalyzer.services.parsers.ReviewParser;
 import com.exercise.reviewsanalyzer.services.parsers.ReviewsFileParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,10 +21,15 @@ import java.util.stream.Stream;
 @Component
 public class ReviewsCSVFileParser implements ReviewsFileParser {
 
+    private final ReviewParser<String> parser;
+
+    @Autowired
+    public ReviewsCSVFileParser(ReviewParser<String> parser) {
+        this.parser = parser;
+    }
 
     @Override
     public Collection<Review> parseReviews(String filePath) throws IOException {
-        ReviewParser<String> parser = new ReviewCSVParser();
         try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
             Stream<Review> reviewStream = lines.skip(1).map(parser::parse);
             //Can use set to avoid duplicates, but it won't be perfect

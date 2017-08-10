@@ -28,14 +28,14 @@ configuration:
         onStartupTriggeringPolicy: {}
   loggers:
     logger:
-        name: com
+        name: com.exercise.reviewsanalyzer
         level: debug
         additivity: false
         appenderRef:
-          ref: STDOUT
-          ref: FILE
+          - ref: FILE
+          - ref: STDOUT
     root:
       level: info
       appenderRef:
-        - ref: STDOUT
         - ref: FILE
+        - ref: STDOUT

@@ -6,8 +6,10 @@ import java.util.Collection;
 
 /**
  * Created by itsik on 8/7/17.
+ * <p>
+ * Interface for reviews translator. No return arg.
  */
-public interface ReviewsProcessor<T> {
+public interface ReviewsTranslator {
 
-    T process(Collection<Review> reviews);
+    void translate(Collection<Review> reviews);
 }

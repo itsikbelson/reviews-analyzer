@@ -5,7 +5,8 @@ package com.exercise.reviewsanalyzer.domain;
  * Basic pojo for review
  */
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;

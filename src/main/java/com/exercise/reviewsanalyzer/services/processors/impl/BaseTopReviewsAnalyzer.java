@@ -1,7 +1,8 @@
 package com.exercise.reviewsanalyzer.services.processors.impl;
 
 import com.exercise.reviewsanalyzer.domain.Review;
-import com.exercise.reviewsanalyzer.services.processors.ReviewsProcessor;
+import com.exercise.reviewsanalyzer.services.processors.ReviewsAnalyzer;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -23,16 +24,13 @@ import java.util.stream.Stream;
  * <p>
  * The analyzer is implements callable so it can be executed in a thread pool
  */
-public abstract class BaseTopReviewsAnalyzer implements ReviewsProcessor<List<String>> {
-
-    //TODO inject
-    private int DEFAULT_LIMIT = 1000;
+public abstract class BaseTopReviewsAnalyzer implements ReviewsAnalyzer<List<String>> {
 
     protected abstract Stream<String> getEntitiesStream(Collection<Review> reviews);
 
-    protected int getLimit() {
-        return DEFAULT_LIMIT;
-    }
+    @Value("${analyzer.top.count}")
+    protected int topCount;
+
 
     private List<String> getTopEntities(Stream<String> entitiesStream) {
         Map<String, Long> reviewsCountMap = entitiesStream
@@ -46,12 +44,12 @@ public abstract class BaseTopReviewsAnalyzer implements ReviewsProcessor<List<St
         Comparator<Map.Entry<String, Long>> valueComparator = Comparator.comparing(Map.Entry::getValue);
         Comparator<Map.Entry<String, Long>> reversedCountComparator = valueComparator.reversed();
         Comparator<Map.Entry<String, Long>> keyComparatorCaseInsensitive = Comparator.comparing(Map.Entry::getKey, String::compareToIgnoreCase);
-        Stream<Map.Entry<String, Long>> topEntitiesStream = reviewsCountMap.entrySet().stream().sorted(reversedCountComparator).limit(getLimit());
+        Stream<Map.Entry<String, Long>> topEntitiesStream = reviewsCountMap.entrySet().stream().sorted(reversedCountComparator).limit(topCount);
         return topEntitiesStream.sorted(keyComparatorCaseInsensitive).map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
     @Override
-    public List<String> process(Collection<Review> reviews) {
+    public List<String> analyze(Collection<Review> reviews) {
         return getTopEntities(getEntitiesStream(reviews));
     }
 }
