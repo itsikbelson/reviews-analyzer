@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by itsik on 8/6/17.
@@ -84,6 +81,11 @@ public class ReviewsProcessExecutorImpl implements com.exercise.reviewsanalyzer.
             pool.execute(task);
         });
         pool.shutdown();
+        try {
+            pool.awaitTermination(Integer.MAX_VALUE, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         log.debug("Done executing translators");
     }
 

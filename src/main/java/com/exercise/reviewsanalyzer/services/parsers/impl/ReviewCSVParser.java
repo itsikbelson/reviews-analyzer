@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
 import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.util.Set;
 
 /**
@@ -17,9 +19,7 @@ import java.util.Set;
 @Component
 public class ReviewCSVParser implements ReviewParser<String> {
 
-    //TODO need to handle commas within quotes. Pattern below is memory exhaustive
-//    private static final String CSV_SPLIT_PATTERN = ",(?=(?:[^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)";
-    private static final String CSV_SPLIT_PATTERN = ",";
+
     private static final int COLUMN_ID = 0;
     private static final int COLUMN_PRODUCT_ID = 1;
     private static final int COLUMN_USER_ID = 2;
@@ -29,15 +29,13 @@ public class ReviewCSVParser implements ReviewParser<String> {
     private Validator validator;
 
     public ReviewCSVParser() {
-//        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-//        validator = factory.getValidator();
-
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     @Override
     public Review parse(String reviewInput) throws IllegalArgumentException {
-        //TODO clear enclosing quotes
-//        String[] columns = reviewInput.split(CSV_SPLIT_PATTERN, -1);
+        //TODO did not handle commas within quotes
         String[] columns = StringUtils.commaDelimitedListToStringArray(reviewInput);
         Integer id = getId(columns[COLUMN_ID]);
         Review review = Review.builder()
@@ -65,7 +63,6 @@ public class ReviewCSVParser implements ReviewParser<String> {
         if (violations.size() > 0) {
             throw new IllegalArgumentException("Review invalid: " + review + "Violations: " + violations.toString());
         }
-        ;
 
     }
 }

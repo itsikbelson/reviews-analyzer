@@ -29,7 +29,7 @@ configuration:
   loggers:
     logger:
         name: com.exercise.reviewsanalyzer
-        level: debug
+        level: info
         additivity: false
         appenderRef:
           - ref: FILE

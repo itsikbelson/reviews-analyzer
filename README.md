@@ -10,7 +10,8 @@ In order to build the application, please run:
 `./gradlew build`
 
 In order to execute the application, please run:
-`./java -jar build/libs/reviews-analyzer.jar <file-name>`
+`java -Xms500M -Xmx500M -jar build/libs/reviews-analyzer.jar <file-name> --translate=true` 
 
 Application configurations are controlled via `resources/application.yml`
+
 Logs configuration are controlled via `resources/log4j2.yml`

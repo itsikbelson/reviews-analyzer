@@ -74,6 +74,7 @@ public class Application implements ApplicationRunner {
     }
 
     private Collection<Review> parseReviews(String fileName) throws Exception {
+        log.debug("Start parsing reviews from file {}", fileName);
         Collection<Review> reviews = parser.parseReviews(fileName);
         log.debug("Reviews are parsed from file {}", fileName);
         return reviews;
